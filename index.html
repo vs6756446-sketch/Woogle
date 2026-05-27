@@ -159,13 +159,7 @@
 </div>
 
 <script>
-const SEARXNG_INSTANCES = [
-  'https://searx.be',
-  'https://search.bus-hit.me',
-  'https://searxng.site',
-  'https://search.hbubli.cc',
-  'https://searx.tiekoetter.com'
-];
+const PROXY_URL = "https://little-union-3165.ggam1097.workers.dev";
 
 const SITE_GROUPS = {
   all: [],
@@ -177,7 +171,7 @@ const SITE_GROUPS = {
 let currentCat = 'all';
 let currentTab = 'web';
 let currentQuery = '';
-let currentInstanceIdx = 0;
+
 
 function setCat(el){
   document.querySelectorAll('.cat').forEach(c=>c.classList.remove('active'));
@@ -192,30 +186,12 @@ function buildQuery(q, cat){
   return q + ' (' + siteStr + ')';
 }
 
-function getInstanceUrl(){
-  return SEARXNG_INSTANCES[currentInstanceIdx % SEARXNG_INSTANCES.length];
-}
-
-async function fetchResults(query, category, tab, format='json'){
+async function fetchResults(query, category, tab){
   const builtQuery = buildQuery(query, category);
-  const params = new URLSearchParams({
-    q: builtQuery,
-    format: 'json',
-    language: 'en',
-    time_range: '',
-    safesearch: '0',
-  });
-  if(tab === 'images') params.set('categories','images');
-  else if(tab === 'videos') params.set('categories','videos');
-  else params.set('categories','general');
-
-  const base = getInstanceUrl();
-  const url = base + '/search?' + params.toString();
-
-  const resp = await fetch(url, {
-    headers: {'Accept':'application/json'},
-    signal: AbortSignal.timeout(8000)
-  });
+  const cat = tab==='images'?'images':tab==='videos'?'videos':'general';
+  const params = new URLSearchParams({q:builtQuery,categories:cat});
+  const url = PROXY_URL+'/search?'+params.toString();
+  const resp = await fetch(url,{signal:AbortSignal.timeout(10000)});
   if(!resp.ok) throw new Error('HTTP '+resp.status);
   return await resp.json();
 }
@@ -266,15 +242,10 @@ function showResults(query, cat, tab){
 
   fetchResults(query, cat, tab)
     .then(data => renderResults(data, tab, query, cat))
-    .catch(err => {
-      currentInstanceIdx++;
-      if(currentInstanceIdx < SEARXNG_INSTANCES.length * 2){
-        fetchResults(query, cat, tab)
-          .then(data => renderResults(data, tab, query, cat))
-          .catch(() => showError(container));
-      } else {
-        showError(container);
-      }
+    .catch(() => {
+      const fallbackUrl = buildGoogleFallback(query, cat, tab);
+      container.innerHTML = `<div class="msg-box"><div class="msg-icon">⚠️</div><div class="msg-title">Search instances unavailable</div><div class="msg-sub">All SearXNG instances are blocked right now. Tap below to search Google with your site filters applied.</div></div><a class="open-all-btn" href="${fallbackUrl}" target="_blank">Search Google with filters ↗</a>`;
+      statusBar.textContent='';
     });
 }
 
