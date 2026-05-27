@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VoidSearch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  :root{
+    --bg:#000000;
+    --bg2:#0a0a0a;
+    --bg3:#111111;
+    --bg4:#1a1a1a;
+    --border:#222222;
+    --border2:#2a2a2a;
+    --text:#f0f0f0;
+    --text2:#888888;
+    --text3:#555555;
+    --accent:#c084fc;
+    --accent2:#a855f7;
+    --accent3:#7c3aed;
+    --red:#f87171;
+    --amber:#fbbf24;
+    --teal:#34d399;
+  }
+  html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden}
+
+  /* HOME */
+  #home{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:2rem 1.25rem;gap:2rem}
+  .logo-wrap{text-align:center}
+  .logo-void{font-family:'Syne',sans-serif;font-weight:800;font-size:3.2rem;letter-spacing:-2px;background:linear-gradient(135deg,#c084fc,#818cf8,#38bdf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1}
+  .logo-search{font-family:'Syne',sans-serif;font-weight:400;font-size:1rem;letter-spacing:0.4em;color:var(--text3);text-transform:uppercase;margin-top:4px}
+  .tagline{font-size:0.8rem;color:var(--text3);letter-spacing:0.1em;margin-top:8px}
+
+  /* SEARCH BOX */
+  .search-wrap{width:100%;max-width:500px;position:relative}
+  .search-input{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:16px;padding:1rem 3.5rem 1rem 1.25rem;font-size:1rem;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;transition:border-color 0.2s,box-shadow 0.2s;-webkit-appearance:none}
+  .search-input::placeholder{color:var(--text3)}
+  .search-input:focus{border-color:var(--accent3);box-shadow:0 0 0 3px rgba(124,58,237,0.15)}
+  .search-btn{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:var(--accent3);border:none;border-radius:10px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background 0.2s,transform 0.1s}
+  .search-btn:active{transform:translateY(-50%) scale(0.93);background:var(--accent2)}
+  .search-btn svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+
+  /* CATEGORIES */
+  .cats{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;max-width:500px}
+  .cat{display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:999px;border:1px solid var(--border2);background:var(--bg3);font-size:0.78rem;font-weight:500;cursor:pointer;transition:all 0.15s;color:var(--text2);white-space:nowrap}
+  .cat.active{background:rgba(124,58,237,0.18);border-color:var(--accent3);color:var(--accent)}
+  .cat-dot{width:7px;height:7px;border-radius:50%}
+
+  /* RESULTS PAGE */
+  #results-page{display:none;min-height:100vh;background:var(--bg)}
+  .results-header{position:sticky;top:0;z-index:100;background:rgba(0,0,0,0.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0.75rem 1rem;display:flex;align-items:center;gap:10px}
+  .back-btn{background:var(--bg3);border:1px solid var(--border2);border-radius:10px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+  .back-btn svg{width:18px;height:18px;stroke:var(--text2);fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+  .results-search-wrap{flex:1;position:relative}
+  .results-search-input{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:12px;padding:0.6rem 2.8rem 0.6rem 0.9rem;font-size:0.9rem;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;-webkit-appearance:none}
+  .results-search-input:focus{border-color:var(--accent3)}
+  .results-search-btn{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:4px}
+  .results-search-btn svg{width:16px;height:16px;stroke:var(--text3);fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+
+  /* TABS */
+  .tabs-wrap{padding:0 1rem;border-bottom:1px solid var(--border);background:var(--bg);overflow-x:auto;display:flex;gap:0;scrollbar-width:none}
+  .tabs-wrap::-webkit-scrollbar{display:none}
+  .tab{padding:0.65rem 1.1rem;font-size:0.8rem;font-weight:500;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:color 0.15s,border-color 0.15s}
+  .tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+  /* RESULTS */
+  .results-body{padding:1rem}
+  .status-bar{font-size:0.75rem;color:var(--text3);margin-bottom:1rem;padding:0 0.1rem}
+
+  .result-card{background:var(--bg3);border:1px solid var(--border);border-radius:14px;padding:1rem;margin-bottom:10px;cursor:pointer;transition:border-color 0.15s,background 0.15s;text-decoration:none;display:block}
+  .result-card:active{background:var(--bg4);border-color:var(--border2)}
+  .result-site{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+  .result-favicon{width:16px;height:16px;border-radius:4px;background:var(--bg4);flex-shrink:0}
+  .result-domain{font-size:0.72rem;color:var(--text3)}
+  .result-title{font-size:0.92rem;font-weight:500;color:var(--text);line-height:1.4;margin-bottom:4px}
+  .result-snippet{font-size:0.78rem;color:var(--text2);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
+  /* IMAGE GRID */
+  .img-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+  .img-card{border-radius:12px;overflow:hidden;background:var(--bg3);border:1px solid var(--border);cursor:pointer;text-decoration:none;display:block}
+  .img-card img{width:100%;height:120px;object-fit:cover;display:block}
+  .img-card-title{font-size:0.72rem;color:var(--text2);padding:6px 8px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
+  /* VIDEO CARDS */
+  .video-card{background:var(--bg3);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:10px;cursor:pointer;text-decoration:none;display:block}
+  .video-thumb{width:100%;height:180px;object-fit:cover;background:var(--bg4);display:block}
+  .video-info{padding:0.75rem}
+  .video-title{font-size:0.88rem;font-weight:500;color:var(--text);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .video-meta{font-size:0.72rem;color:var(--text3);margin-top:4px}
+
+  /* LOADING */
+  .loading{text-align:center;padding:3rem 1rem}
+  .loading-spinner{width:32px;height:32px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite;margin:0 auto 1rem}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .loading-text{font-size:0.8rem;color:var(--text3)}
+
+  /* ERROR / EMPTY */
+  .msg-box{text-align:center;padding:3rem 1rem}
+  .msg-icon{font-size:2rem;margin-bottom:0.75rem}
+  .msg-title{font-size:0.95rem;font-weight:500;color:var(--text2);margin-bottom:0.4rem}
+  .msg-sub{font-size:0.78rem;color:var(--text3);line-height:1.5}
+
+  /* OPEN LINK BTN */
+  .open-all-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:0.5rem;padding:0.8rem;background:rgba(124,58,237,0.12);border:1px solid var(--accent3);border-radius:12px;color:var(--accent);font-size:0.82rem;font-weight:500;cursor:pointer;text-decoration:none}
+</style>
+</head>
+<body>
+
+<!-- HOME PAGE -->
+<div id="home">
+  <div class="logo-wrap">
+    <div class="logo-void">VOID</div>
+    <div class="logo-search">SEARCH</div>
+    <div class="tagline">search the dark corners of the web</div>
+  </div>
+
+  <div class="search-wrap">
+    <input class="search-input" id="homeInput" type="text" placeholder="Search anything..." autocomplete="off" autocorrect="off" spellcheck="false">
+    <button class="search-btn" onclick="doSearch()">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </button>
+  </div>
+
+  <div class="cats" id="catButtons">
+    <div class="cat active" data-cat="all" onclick="setCat(this)"><span class="cat-dot" style="background:#c084fc"></span>All</div>
+    <div class="cat" data-cat="jav" onclick="setCat(this)"><span class="cat-dot" style="background:#f87171"></span>JAV / Adult</div>
+    <div class="cat" data-cat="movies" onclick="setCat(this)"><span class="cat-dot" style="background:#fbbf24"></span>Movies / TV</div>
+    <div class="cat" data-cat="anime" onclick="setCat(this)"><span class="cat-dot" style="background:#34d399"></span>Anime / Manga</div>
+  </div>
+</div>
+
+<!-- RESULTS PAGE -->
+<div id="results-page">
+  <div class="results-header">
+    <button class="back-btn" onclick="goHome()">
+      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="results-search-wrap">
+      <input class="results-search-input" id="resultsInput" type="text" autocomplete="off" autocorrect="off" spellcheck="false">
+      <button class="results-search-btn" onclick="doSearchFromResults()">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="tabs-wrap" id="tabsWrap">
+    <div class="tab active" data-tab="web" onclick="switchTab(this)">Web</div>
+    <div class="tab" data-tab="images" onclick="switchTab(this)">Images</div>
+    <div class="tab" data-tab="videos" onclick="switchTab(this)">Videos</div>
+  </div>
+
+  <div class="results-body">
+    <div class="status-bar" id="statusBar"></div>
+    <div id="resultsContainer"></div>
+  </div>
+</div>
+
+<script>
+const SEARXNG_INSTANCES = [
+  'https://searx.be',
+  'https://search.bus-hit.me',
+  'https://searxng.site',
+  'https://search.hbubli.cc',
+  'https://searx.tiekoetter.com'
+];
+
+const SITE_GROUPS = {
+  all: [],
+  jav: ['missav.com','javdatabase.com','javmost.com','avgle.com','jable.tv','caribbeancom.com','1pondo.tv','javhd.com','dlsite.com'],
+  movies: ['imdb.com','letterboxd.com','themoviedb.org','justwatch.com','rottentomatoes.com','fmovies.to','1337x.to','yts.mx','opensubtitles.org'],
+  anime: ['myanimelist.net','anilist.co','crunchyroll.com','gogoanime.cl','9anime.to','mangadex.org','mangakakalot.com','animesuge.io','kissanime.com.ru']
+};
+
+let currentCat = 'all';
+let currentTab = 'web';
+let currentQuery = '';
+let currentInstanceIdx = 0;
+
+function setCat(el){
+  document.querySelectorAll('.cat').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  currentCat = el.dataset.cat;
+}
+
+function buildQuery(q, cat){
+  const sites = SITE_GROUPS[cat];
+  if(!sites || sites.length === 0) return q;
+  const siteStr = sites.map(s=>'site:'+s).join(' OR ');
+  return q + ' (' + siteStr + ')';
+}
+
+function getInstanceUrl(){
+  return SEARXNG_INSTANCES[currentInstanceIdx % SEARXNG_INSTANCES.length];
+}
+
+async function fetchResults(query, category, tab, format='json'){
+  const builtQuery = buildQuery(query, category);
+  const params = new URLSearchParams({
+    q: builtQuery,
+    format: 'json',
+    language: 'en',
+    time_range: '',
+    safesearch: '0',
+  });
+  if(tab === 'images') params.set('categories','images');
+  else if(tab === 'videos') params.set('categories','videos');
+  else params.set('categories','general');
+
+  const base = getInstanceUrl();
+  const url = base + '/search?' + params.toString();
+
+  const resp = await fetch(url, {
+    headers: {'Accept':'application/json'},
+    signal: AbortSignal.timeout(8000)
+  });
+  if(!resp.ok) throw new Error('HTTP '+resp.status);
+  return await resp.json();
+}
+
+function goHome(){
+  document.getElementById('home').style.display='flex';
+  document.getElementById('results-page').style.display='none';
+  document.getElementById('homeInput').value = currentQuery;
+}
+
+function doSearch(){
+  const q = document.getElementById('homeInput').value.trim();
+  if(!q) return;
+  currentQuery = q;
+  currentTab = 'web';
+  showResults(q, currentCat, 'web');
+}
+
+function doSearchFromResults(){
+  const q = document.getElementById('resultsInput').value.trim();
+  if(!q) return;
+  currentQuery = q;
+  showResults(q, currentCat, currentTab);
+}
+
+function switchTab(el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  currentTab = el.dataset.tab;
+  showResults(currentQuery, currentCat, currentTab);
+}
+
+function showResults(query, cat, tab){
+  document.getElementById('home').style.display='none';
+  const rp = document.getElementById('results-page');
+  rp.style.display='block';
+  document.getElementById('resultsInput').value = query;
+
+  document.querySelectorAll('.tab').forEach(t=>{
+    t.classList.toggle('active', t.dataset.tab === tab);
+  });
+
+  const container = document.getElementById('resultsContainer');
+  const statusBar = document.getElementById('statusBar');
+
+  container.innerHTML = '<div class="loading"><div class="loading-spinner"></div><div class="loading-text">Searching the void...</div></div>';
+  statusBar.textContent = '';
+
+  fetchResults(query, cat, tab)
+    .then(data => renderResults(data, tab, query, cat))
+    .catch(err => {
+      currentInstanceIdx++;
+      if(currentInstanceIdx < SEARXNG_INSTANCES.length * 2){
+        fetchResults(query, cat, tab)
+          .then(data => renderResults(data, tab, query, cat))
+          .catch(() => showError(container));
+      } else {
+        showError(container);
+      }
+    });
+}
+
+function showError(container){
+  container.innerHTML = `<div class="msg-box"><div class="msg-icon">⚠️</div><div class="msg-title">Instance unavailable</div><div class="msg-sub">The search instance is down. Try again in a moment, or tap search to try a different instance.</div></div>`;
+}
+
+function renderResults(data, tab, query, cat){
+  const container = document.getElementById('resultsContainer');
+  const statusBar = document.getElementById('statusBar');
+  const results = data.results || [];
+
+  if(results.length === 0){
+    const openUrl = buildGoogleFallback(query, cat, tab);
+    container.innerHTML = `<div class="msg-box"><div class="msg-icon">🌑</div><div class="msg-title">Nothing found in the void</div><div class="msg-sub">Try a different query or open Google with your site filters below.</div></div><a class="open-all-btn" href="${openUrl}" target="_blank">Open Google Search ↗</a>`;
+    statusBar.textContent = '';
+    return;
+  }
+
+  statusBar.textContent = results.length + ' results · ' + (data.search_time ? data.search_time.toFixed(2)+'s' : '') + (cat !== 'all' ? ' · filtered: '+cat : '');
+
+  if(tab === 'images'){
+    renderImages(results, container);
+  } else if(tab === 'videos'){
+    renderVideos(results, container);
+  } else {
+    renderWeb(results, container);
+  }
+}
+
+function getDomain(url){
+  try{ return new URL(url).hostname.replace('www.',''); }
+  catch(e){ return ''; }
+}
+
+function renderWeb(results, container){
+  let html = '';
+  results.slice(0,30).forEach(r => {
+    const domain = getDomain(r.url||'');
+    const favicon = 'https://www.google.com/s2/favicons?domain='+domain+'&sz=32';
+    html += `<a class="result-card" href="${escHtml(r.url||'#')}" target="_blank" rel="noopener">
+      <div class="result-site">
+        <img class="result-favicon" src="${favicon}" onerror="this.style.display='none'" alt="">
+        <span class="result-domain">${escHtml(domain)}</span>
+      </div>
+      <div class="result-title">${escHtml(r.title||'')}</div>
+      <div class="result-snippet">${escHtml(r.content||'')}</div>
+    </a>`;
+  });
+  container.innerHTML = html;
+}
+
+function renderImages(results, container){
+  const imgs = results.filter(r=>r.img_src||r.thumbnail_src);
+  if(imgs.length === 0){
+    container.innerHTML = '<div class="msg-box"><div class="msg-icon">🖼️</div><div class="msg-title">No images found</div><div class="msg-sub">Try the Web tab instead.</div></div>';
+    return;
+  }
+  let html = '<div class="img-grid">';
+  imgs.slice(0,20).forEach(r => {
+    const src = r.img_src || r.thumbnail_src;
+    html += `<a class="img-card" href="${escHtml(r.url||src)}" target="_blank" rel="noopener">
+      <img src="${escHtml(src)}" alt="${escHtml(r.title||'')}" loading="lazy" onerror="this.parentElement.style.display='none'">
+      <div class="img-card-title">${escHtml(r.title||getDomain(r.url||''))}</div>
+    </a>`;
+  });
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+function renderVideos(results, container){
+  if(results.length === 0){
+    container.innerHTML = '<div class="msg-box"><div class="msg-icon">🎬</div><div class="msg-title">No videos found</div><div class="msg-sub">Try the Web tab instead.</div></div>';
+    return;
+  }
+  let html = '';
+  results.slice(0,15).forEach(r => {
+    const thumb = r.thumbnail||r.img_src||'';
+    const domain = getDomain(r.url||'');
+    html += `<a class="video-card" href="${escHtml(r.url||'#')}" target="_blank" rel="noopener">
+      ${thumb ? `<img class="video-thumb" src="${escHtml(thumb)}" alt="" loading="lazy" onerror="this.style.display='none'">` : ''}
+      <div class="video-info">
+        <div class="video-title">${escHtml(r.title||'')}</div>
+        <div class="video-meta">${escHtml(domain)}${r.publishedDate?' · '+r.publishedDate:''}</div>
+      </div>
+    </a>`;
+  });
+  container.innerHTML = html;
+}
+
+function buildGoogleFallback(query, cat, tab){
+  const sites = SITE_GROUPS[cat];
+  let q = query;
+  if(sites && sites.length > 0) q += ' ' + sites.slice(0,5).map(s=>'site:'+s).join(' OR ');
+  if(tab==='images') return 'https://www.google.com/search?tbm=isch&q='+encodeURIComponent(q);
+  if(tab==='videos') return 'https://www.google.com/search?tbm=vid&q='+encodeURIComponent(q);
+  return 'https://www.google.com/search?q='+encodeURIComponent(q);
+}
+
+function escHtml(s){
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+document.getElementById('homeInput').addEventListener('keydown',e=>{if(e.key==='Enter')doSearch()});
+document.getElementById('resultsInput').addEventListener('keydown',e=>{if(e.key==='Enter')doSearchFromResults()});
+</script>
+</body>
+</html>
